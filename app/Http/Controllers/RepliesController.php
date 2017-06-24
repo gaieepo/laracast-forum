@@ -21,19 +21,20 @@ class RepliesController extends Controller
 
     public function store($channelId, Thread $thread, Spam $spam)
     {
-        $this->validate(request(), ['body' => 'required']);
-        $spam->detect(request('body'));
+        try {
+            $this->validate(request(), ['body' => 'required']);
+            $spam->detect(request('body'));
 
-        $reply = $thread->addReply([
-            'body' => request('body'),
-            'user_id' => auth()->id()
-        ]);
-
-        if (request()->expectsJson()) {
-            return $reply->load('owner');
+            $reply = $thread->addReply([
+                'body' => request('body'),
+                'user_id' => auth()->id()
+            ]);
+        } catch (\Exception $e) {
+            return response('Sorry, your reply could not be saved at this time.', 422);
         }
 
-        return back()->with('flash', 'Your reply has been left');
+
+        return $reply->load('owner');
     }
 
     public function destroy(Reply $reply)
@@ -53,9 +54,13 @@ class RepliesController extends Controller
     {
         $this->authorize('update', $reply);
 
-        $this->validate(request(), ['body' => 'required']);
-        $spam->detect(request('body'));
+        try {
+            $this->validate(request(), ['body' => 'required']);
+            $spam->detect(request('body'));
 
-        $reply->update(request(['body']));
+            $reply->update(request(['body']));
+        } catch (\Exception $e) {
+            return response('Sorry, your reply could not be saved at this time.', 422);
+        }
     }
 }
