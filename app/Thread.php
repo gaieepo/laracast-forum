@@ -4,11 +4,12 @@ namespace App;
 
 use App\Events\ThreadReceivedNewReply;
 use App\Notifications\ThreadWasUpdated;
+use App\RecordsVisits;
 use Illuminate\Database\Eloquent\Model;
 
 class Thread extends Model
 {
-    use RecordsActivity;
+    use RecordsActivity, RecordsVisits;
 
     protected $guarded = [];
 
