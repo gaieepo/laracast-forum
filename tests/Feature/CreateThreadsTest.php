@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Activity;
+use App\Thread;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
@@ -76,6 +77,42 @@ class CreateThreadsTest extends TestCase
 
         $this->publishThread(['channel_id' => 9999])
             ->assertSessionHasErrors('channel_id');
+    }
+
+    /** @test */
+    public function a_thread_requires_a_unique_slug()
+    {
+        $this->signIn();
+
+        $thread = create('App\Thread', ['title' => 'gai title', 'slug' => 'gai-title']);
+
+        $this->assertEquals($thread->fresh()->slug, 'gai-title');
+
+        $this->post(route('threads'), $thread->toArray());
+
+        $this->assertTrue(Thread::whereSlug('gai-title-2')->exists());
+
+        $this->post(route('threads'), $thread->toArray());
+
+        $this->assertTrue(Thread::whereSlug('gai-title-3')->exists());
+
+        $this->post(route('threads'), $thread->toArray());
+
+        $this->assertTrue(Thread::whereSlug('gai-title-4')->exists());
+    }
+
+    /** @test */
+    public function a_thread_ends_with_number_should_generate_correct_slug()
+    {
+        $this->signIn();
+
+        $thread = create('App\Thread', ['title' => 'gai title is 3', 'slug' => 'gai-title-is-3']);
+
+        $this->assertEquals($thread->fresh()->slug, 'gai-title-is-3');
+
+        $this->post(route('threads'), $thread->toArray());
+
+        $this->assertTrue(Thread::whereSlug('gai-title-is-3-2')->exists());
     }
 
     /** @test */
